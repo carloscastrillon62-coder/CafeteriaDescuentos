@@ -1,0 +1,116 @@
+classDiagram
+    direction TB
+
+    class Producto {
+        <<abstract>>
+        -int id
+        -String codigo
+        -String nombre
+        -double precio
+        +getId() int
+        +getCodigo() String
+        +getNombre() String
+        +getPrecio() double
+        +getTipo()* String
+        +getDetalle()* String
+    }
+
+    class Bebida {
+        -int mililitros
+        -boolean caliente
+        +esCaliente() boolean
+        +getTipo() String
+        +getDetalle() String
+    }
+
+    class Comida {
+        -int gramos
+        -boolean vegetariana
+        +esVegetariana() boolean
+        +getTipo() String
+        +getDetalle() String
+    }
+
+    class ReglaDescuento {
+        <<interface>>
+        +calcularDescuento(double subtotal)* double
+        +aplicarA(double subtotal) double
+    }
+
+    class CatalogoReglas {
+        -List~Promocion~ PROMOCIONES
+        +registrar(String, String, ReglaDescuento) void
+        +getPromociones() List~Promocion~
+        +buscar(String) ReglaDescuento
+        +maximo(ReglaDescuento, ReglaDescuento) ReglaDescuento
+        +conTope(ReglaDescuento, double) ReglaDescuento
+    }
+
+    class Promocion {
+        <<record>>
+        +String nombre
+        +String descripcion
+        +ReglaDescuento regla
+    }
+
+    class Pedido {
+        -List~ItemPedido~ items
+        +agregar(Producto, int) void
+        +quitar(int) void
+        +getSubtotal() double
+        +calcular(String, ReglaDescuento) ResultadoDescuento
+    }
+
+    class ItemPedido {
+        <<record>>
+        +Producto producto
+        +int cantidad
+        +subtotal() double
+    }
+
+    class ResultadoDescuento {
+        <<record>>
+        +double subtotal
+        +String regla
+        +double descuento
+        +double total
+    }
+
+    class BaseDatos {
+        -String url
+        +conectar() Connection
+        +probarConexion() String
+        +ejecutarScript(Path) int
+    }
+
+    class ProductoDAO {
+        +listar() List~Producto~
+        +buscar(String) List~Producto~
+    }
+
+    class PedidoDAO {
+        +guardar(Pedido, ResultadoDescuento) int
+        +listarUltimos(int) List~PedidoGuardado~
+    }
+
+    class VentanaCafeteria {
+        <<JFrame, ActionListener>>
+        +actionPerformed(ActionEvent) void
+    }
+
+    Producto <|-- Bebida : herencia
+    Producto <|-- Comida : herencia
+    Promocion o-- ReglaDescuento : lambda
+    CatalogoReglas *-- Promocion : registra
+    Pedido o-- ItemPedido : contiene
+    ItemPedido --> Producto : referencia
+    Pedido ..> ReglaDescuento : usa
+    Pedido ..> ResultadoDescuento : produce
+    ProductoDAO --> BaseDatos : usa
+    PedidoDAO --> BaseDatos : usa
+    ProductoDAO ..> Producto : construye
+    PedidoDAO ..> Pedido : guarda
+    VentanaCafeteria --> ProductoDAO : consulta
+    VentanaCafeteria --> PedidoDAO : guarda
+    VentanaCafeteria --> Pedido : arma
+    VentanaCafeteria ..> CatalogoReglas : elige promoción
